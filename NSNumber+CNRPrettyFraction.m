@@ -16,9 +16,9 @@
 -(NSString*)prettyDisplayFraction
 {
     // round to fractions at 1/4, 1/3, 1/2, 2/3, and 3/4 marks
-    double fraction = [self doubleValue];
+    float fraction = [self floatValue];
     int whole = floor(fraction);
-    double remainder = fraction - (double)whole;
+    float remainder = fraction - (float)whole;
     
     // remainder being equal to zero is a very common case so handle
     // it first. For symmetry, also handle case of remainder being close
