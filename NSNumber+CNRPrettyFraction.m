@@ -9,7 +9,7 @@
 
 #import "NSNumber+CNRPrettyFraction.h"
 
-#define TO_B(x,a,b) ((x) - (a) > (b) - (x))
+#define TO_B(x,a,b) ((x) - (a) >= (b) - (x))
 
 @implementation NSNumber (CNRPrettyFraction)
 
@@ -20,11 +20,14 @@
     int whole = floor(fraction);
     double remainder = fraction - (double)whole;
     
-    // common situation -- if smaller than or equal to 1/8, set to zero
-    
+    // remainder being equal to zero is a very common case so handle
+    // it first. For symmetry, also handle case of remainder being close
+    // to 1.0 
     NSString *wholeString = [NSString stringWithFormat:@"%d", whole];
-    if (remainder <= 0.125f) {
+    if (remainder < 0.125f) {
         return wholeString;
+    } else if (remainder >= 0.875) {
+        return [NSString stringWithFormat:@"%d", whole + 1];
     }
     
     // vulgar fractions (Unicode)
@@ -40,26 +43,26 @@
     } else if (fraction < 0.0f) {
         [result addObject:@"-"];
     }
-    if (remainder > 0.5f) {
-        // larger than 1/2
-        if (remainder > 0.75f) {
-            // larger than 3/4
+    if (remainder >= 0.5f) {
+        // larger than or equal to 1/2
+        if (remainder >= 0.75f) {
+            // larger than or equal to 3/4
             if (TO_B(remainder, 0.75f, 1.0f)) {
                 return [NSString stringWithFormat:@"%d", whole + 1];
             } else {
                 [result addObject:three_quarters];
             }
         } else {
-            // smaller or equal to 3/4
-            if (remainder > (2.0f/3.0f)) {
-                // larger than 2/3, smaller than or equal to 3/4
+            // smaller than 3/4
+            if (remainder >= (2.0f/3.0f)) {
+                // larger than or equal to 2/3, smaller than 3/4
                 if (TO_B(remainder, (2.0f/3.0f), 0.75f)) {
                     [result addObject:three_quarters];
                 } else {
                     [result addObject:two_thirds];
                 }
             } else {
-                // smaller than or equal to 2/3, larger than 1/2
+                // smaller than 2/3, larger than or equal to 1/2
                 if (TO_B(remainder, 0.5f, (2.0f/3.0f))) {
                     [result addObject:two_thirds];
                 } else {
@@ -68,13 +71,13 @@
             }
         }
     } else {
-        // smaller ot equal to 1/2
+        // less than 1/2
         if (remainder < 0.25f) {
             // smaller than 1/4
             if (TO_B(remainder, 0.0f, 0.25f)) {
                 [result addObject:one_fourth];
             } else {
-                return [NSString stringWithFormat:@"%d", whole + 1];
+                return wholeString;
             }
         } else {
             // larger than or equal to 1/4
@@ -86,7 +89,7 @@
                     [result addObject:one_fourth];
                 }
             } else {
-                // larger than or equal to 1/3, smaller than or equal to 1/2
+                // larger than or equal to 1/3, smaller than 1/2
                 if (TO_B(remainder, (1.0f/3.0f), 0.5f)) {
                     [result addObject:one_half];
                 } else {
